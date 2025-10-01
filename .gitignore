@@ -1,0 +1,71 @@
+# ========================
+# Visual Studio / IDE Files
+# ========================
+## Komentar: File-file ini menyimpan pengaturan user dan proyek lokal
+*.vs/
+*.user
+*.bak
+*.suo
+*.sln.idef
+*.log
+[Dd]ebug/
+[Rr]elease/
+**/bin/
+**/obj/
+
+# ========================
+# Packages & Dependencies
+# ========================
+## Komentar: Folder nuget packages yang didownload
+packages/
+*.nupkg
+.nuget/
+
+# ========================
+# .NET Build Output
+# ========================
+## Komentar: Output build utama dan artifact publish
+publish/
+*/[Dd]ebug/
+*/[Rr]elease/
+**/*.dll.config
+**/*.pdb
+**/*.mdb
+**/*.tmp
+*.resharper
+.tmp/
+
+# ========================
+# Configuration Secrets
+# ========================
+## Komentar: JANGAN PERNAH commit secret, termasuk connection string lokal
+appsettings.Development.json
+appsettings.Production.json
+appsettings.json.user
+appsettings.*.json.user
+/Properties/launchSettings.json
+appsettings.Local.json
+*.secrets.json
+
+# ========================
+# Testing & Tools
+# ========================
+TestResults/
+*.trx
+.Fody/
+
+# ========================
+# Entity Framework Core
+# ========================
+## Komentar: Pastikan untuk TIDAK mengabaikan folder 'Migrations/'
+## Kecuali file snapshot di dalamnya, jika Anda mau.
+*.Designer.cs
+*.Snapshot.cs
+
+# ========================
+# Docker
+# ========================
+## Komentar: Hasil build Docker
+!Dockerfile
+!docker-compose.yml
+.dockerignore

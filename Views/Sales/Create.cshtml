@@ -1,0 +1,251 @@
+@model WarungKu.Models.Sale
+
+@{
+    ViewData["Title"] = "Point of Sale";
+    var products = ViewBag.Products as List<WarungKu.Models.Product>;
+    var customers = ViewBag.Customers as List<WarungKu.Models.Customer>;
+}
+
+<div class="container mt-4">
+
+    <h2 class="mb-3">Warung Ku</h2>
+
+
+    <div class="mb-3">
+        <a asp-action="Create" class="btn btn-success">Point Of Sale</a>
+        <a asp-action="Index" class="btn btn-info">List Transaction</a>
+    </div>
+
+    <form asp-action="Create" method="post" onsubmit="updateItemsJson()" id="posForm">
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label>User Login</label>
+                <div class="d-flex">
+                    <input type="text" class="form-control" value="@ViewBag.LoggedInUsername" readonly />
+                    <a asp-controller="User" asp-action="Logout" class="btn btn-sm btn-danger">
+                        Logout
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label>Customer</label>
+                <div class="d-flex">
+                    <select asp-for="CustomerId" class="form-control" style="height: 38px;">
+                        @foreach (Customer c in customers!)
+                        {
+                            <option value="@c.Id">@c.Name</option>
+                        }
+                    </select>
+                    <a asp-controller="Customers" asp-action="Create" class="btn btn-sm btn-primary">
+                        Add
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <label>Discount (%)</label>
+                <input type="number" id="discountPercent" name="discountPercent" class="form-control" value="0" />
+            </div>
+            <div class="col-md-6">
+                <label>Voucher (Rp)</label>
+                <input type="number" id="voucher" name="voucher" class="form-control" value="0" />
+            </div>
+        </div>
+
+        <div class="row text-center mb-4 border p-3">
+            <div class="col-md-3">
+                <h5>Total</h5>
+                <div id="totalAmount">0</div>
+            </div>
+            <div class="col-md-3 text-success">
+                <h5>Discount</h5>
+                <div id="discountAmount">0</div>
+            </div>
+            <div class="col-md-3 text-success">
+                <h5>Voucher</h5>
+                <div id="voucherAmount">0</div>
+            </div>
+            <div class="col-md-3 text-danger">
+                <h5>Grand Total</h5>
+                <div id="grandTotal">0</div>
+            </div>
+        </div>
+
+        <div class="text-center mb-4">
+            <h4>Payment</h4>
+            <button type="button" onclick="validateAndSubmit('Cash')" class="btn btn-primary me-2">Cash</button>
+            <button type="button" onclick="validateAndSubmit('NonCash')" class="btn btn-secondary">Non Cash</button>
+        </div>
+
+        <div class="mb-3">
+            <button type="button" class="btn btn-sm btn-success" onclick="addItem()">+ Add Item</button>
+        </div>
+
+        <table class="table table-bordered" id="sale-items">
+            <thead class="table-secondary">
+                <tr>
+                    <th>Item</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Subtotal</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <div id="validationMessage" class="text-danger mb-2"></div>
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        <input type="hidden" id="itemsJson" name="itemsJson" />
+        <input type="hidden" id="paymentMethod" name="paymentMethod" />
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        let products = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(products));
+        let errorItemsJson = '@Html.Raw(ViewBag.ErrorItemsJson)';
+        let errorProductIds = @Html.Raw(Json.Serialize(ViewBag.ErrorProductIds ?? new List<int>()));
+
+        const formatter = new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0 // Tidak menampilkan ,00
+        });
+
+
+        function validateAndSubmit(paymentType) {
+            const tableBody = document.querySelector("#sale-items tbody");
+            const rowCount = tableBody.querySelectorAll("tr").length;
+            const form = document.getElementById("posForm");
+            const validationDiv = document.getElementById("validationMessage");
+
+            if (rowCount === 0) {
+                validationDiv.textContent = "Harap tambahkan setidaknya satu item transaksi.";
+                return false;
+            }
+
+            validationDiv.textContent = "";
+
+            updateItemsJson();
+            document.getElementById("paymentMethod").value = paymentType;
+            form.submit();
+        }
+
+        function formatRupiah(number) {
+            // Hapus "IDR" dan ganti dengan "Rp" di depan
+            return formatter.format(number).replace('IDR', 'Rp');
+        }
+
+
+        function addRow(itemData = null) {
+            let tbody = document.querySelector("#sale-items tbody");
+            let row = document.createElement("tr");
+
+            // Tentukan nilai default atau nilai dari item yang dikembalikan
+            const productId = itemData ? itemData.ProductId : (products[0] ? products[0].Id : 0);
+            const qty = itemData ? itemData.Quantity : 1;
+            const price = itemData ? itemData.Price : (products[0] ? products[0].Price : 0);
+
+            // Cek apakah produk ini termasuk yang stoknya kurang
+            const isError = errorProductIds.includes(productId);
+
+            // Tambahkan class 'table-danger' jika ada error
+            row.className = isError ? 'table-danger' : '';
+
+            row.innerHTML = `
+                                                <td>
+                                                    <select class="form-control product-select">
+                                                        ${products.map(p => `<option value="${p.Id}" data-price="${p.Price}" ${p.Id === productId ? 'selected' : ''}>${p.Name}</option>`).join('')}
+                                                    </select>
+                                                </td>
+                                                <td><input type="number" class="form-control qty" value="${qty}" min="1" /></td>
+                                                <td class="price">${formatRupiah(price)}</td>
+                                                <td class="total">${formatRupiah(qty * price)}</td>
+                                                <td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">Delete</button></td>
+                                            `;
+
+            tbody.appendChild(row);
+            updateCalc();
+        }
+
+        function loadItems() {
+            if (errorItemsJson && errorItemsJson !== 'null') {
+                try {
+                    let items = JSON.parse(errorItemsJson);
+                    items.forEach(item => addRow(item));
+                } catch (e) {
+                    console.error("Gagal parsing item JSON dari server:", e);
+                }
+            } else {
+                // Jika tidak ada item error, tambahkan baris default saat load (jika diinginkan)
+                // addRow();
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            loadItems();
+            updateCalc();
+        });
+
+        function addItem() {
+            addRow();
+        }
+
+        function removeRow(btn) {
+            btn.closest("tr").remove();
+            updateCalc();
+        }
+
+        function updateItemsJson() {
+            let items = [];
+            document.querySelectorAll("#sale-items tbody tr").forEach((tr) => {
+                let productId = parseInt(tr.querySelector(".product-select").value);
+                let qty = parseInt(tr.querySelector(".qty").value) || 0;
+
+                let price = parseFloat(tr.querySelector(".product-select").options[tr.querySelector(".product-select").selectedIndex].dataset.price) || 0;
+
+
+                items.push({ ProductId: productId, Quantity: qty, Price: price });
+            });
+            document.querySelector("#itemsJson").value = JSON.stringify(items);
+        }
+
+        function updateCalc() {
+            let total = 0;
+            document.querySelectorAll("#sale-items tbody tr").forEach(row => {
+                let select = row.querySelector(".product-select");
+                let qty = parseInt(row.querySelector(".qty").value) || 0;
+                let price = parseFloat(select.options[select.selectedIndex].dataset.price) || 0;
+                let subtotal = qty * price;
+
+                // Tampilkan Price dan Subtotal dalam Rupiah
+                row.querySelector(".price").textContent = formatRupiah(price);
+                row.querySelector(".total").textContent = formatRupiah(subtotal);
+
+                total += subtotal;
+            });
+
+            let discountPercent = parseFloat(document.getElementById("discountPercent").value) || 0;
+            let discountAmount = total * (discountPercent / 100);
+            let voucher = parseFloat(document.getElementById("voucher").value) || 0;
+
+            let grandTotal = total - discountAmount - voucher;
+
+
+            document.getElementById("totalAmount").textContent = formatRupiah(total);
+            document.getElementById("discountAmount").textContent = "-" + formatRupiah(discountAmount);
+            document.getElementById("voucherAmount").textContent = "-" + formatRupiah(voucher);
+            document.getElementById("grandTotal").textContent = formatRupiah(grandTotal);
+        }
+
+        document.addEventListener("input", function () {
+            updateCalc();
+            updateItemsJson();
+        });
+        document.addEventListener("change", function () {
+            updateCalc();
+            updateItemsJson();
+        });
+    </script>
+}

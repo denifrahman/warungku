@@ -1,0 +1,35 @@
+@using System.Globalization
+@model IEnumerable<WarungKu.Models.Product>
+@{
+    ViewData["Title"] = "Products";
+}
+<h2>Product List</h2>
+<p>
+    <a asp-action="Create" class="btn btn-primary">+ New Product</a>
+</p>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var product in Model)
+        {
+            var idCulture = new CultureInfo("id-ID");
+            <tr>
+                <td>@product.Name</td>
+                <td>@product.Price.ToString("C", idCulture)</td>
+                <td>@product.Stock</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@product.Id" class="btn btn-info btn-sm">Details</a>
+                    <a asp-action="Edit" asp-route-id="@product.Id" class="btn btn-warning btn-sm">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@product.Id" class="btn btn-danger btn-sm">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

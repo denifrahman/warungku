@@ -1,0 +1,75 @@
+@using System.Globalization
+@model IEnumerable<WarungKu.Models.Sale>
+
+@{
+    ViewData["Title"] = "Sales Index";
+}
+
+<h2 class="mb-3">Warung Ku</h2>
+
+
+<div class="mb-3">
+    <a asp-action="Create" class="btn btn-success">Point Of Sale</a>
+    <a asp-action="Index" class="btn btn-info">List Transaction</a>
+</div>
+
+<form asp-action="Index" method="get" class="mb-4">
+    <div class="row gx-2 gy-2 align-items-end">
+
+        <div class="col-md-3 col-sm-6">
+            <label for="startDate" class="form-label small text-muted mb-0">DARI TANGGAL</label>
+            <input type="date" name="startDate" id="startDate" class="form-control form-control-sm"
+                value="@ViewBag.StartDate" />
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+            <label for="endDate" class="form-label small text-muted mb-0">SAMPAI TANGGAL</label>
+            <input type="date" name="endDate" id="endDate" class="form-control form-control-sm"
+                value="@ViewBag.EndDate" />
+        </div>
+
+        <div class="col-md-2 col-sm-6">
+            <label class="form-label mb-0 d-block d-none d-sm-block">&nbsp;</label>
+            <button type="submit" class="btn btn-primary btn-sm w-100">
+                <i class="bi bi-search"></i> Cari
+            </button>
+        </div>
+
+        <div class="col-md-2 col-sm-6">
+            <label class="form-label mb-0 d-block d-none d-sm-block">&nbsp;</label>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm w-100">
+                Reset
+            </a>
+        </div>
+    </div>
+</form>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Tanggal</th>
+            <th>User</th>
+            <th>Total</th>
+            <th>Discount</th>
+            <th>Voucher</th>
+            <th>Grand Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var sale in Model)
+        {
+            var totalBruto = sale.Items.Sum(i => i.Quantity * i.Price);
+            var discountAmount = totalBruto * (sale.Discount / 100m);
+            var grandTotal = totalBruto - discountAmount - sale.Voucher;
+            var idCulture = new CultureInfo("id-ID");
+            <tr>
+                <td>@sale.Date.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                <td>@sale.User?.Username</td>
+                <td>@totalBruto.ToString("C", idCulture)</td>
+                <td>@sale.Discount% (@discountAmount.ToString("C", idCulture))</td>
+                <td>@sale.Voucher.ToString("C", idCulture)</td>
+                <td>@grandTotal.ToString("C", idCulture)</td>
+            </tr>
+        }
+    </tbody>
+</table>
