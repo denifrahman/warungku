@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WarungKu.Data;
@@ -5,6 +6,7 @@ using WarungKu.Models;
 
 namespace WarungKu.Controllers
 {
+    [Authorize]
     public class ProductsController : Controller
     {
         private readonly WarungKuDbContext _context;
@@ -17,6 +19,13 @@ namespace WarungKu.Controllers
         public async Task<IActionResult> Index()
         {
             return View(await _context.Products.ToListAsync());
+        }
+
+        public async Task<IActionResult> Details(int id)
+        {
+            var product = await _context.Products.FindAsync(id);
+            if (product == null) return NotFound();
+            return View(product);
         }
 
         public IActionResult Create()

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WarungKu.Data;
@@ -5,6 +6,7 @@ using WarungKu.Models;
 
 namespace WarungKu.Controllers
 {
+    [Authorize]
     public class CustomersController : Controller
     {
         private readonly WarungKuDbContext _context;

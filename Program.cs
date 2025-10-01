@@ -16,7 +16,7 @@ builder.Services.AddDbContext<WarungKuDbContext>(options =>
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.LoginPath = "/User/Login"; // redirect ke login kalau belum login
+        options.LoginPath = "/User/Login";
     });
 var app = builder.Build();
 
@@ -45,6 +45,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Sales}/{action=Index}/{id?}");
 
 app.Run();

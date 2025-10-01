@@ -186,8 +186,9 @@ namespace WarungKu.Controllers
         {
             ViewBag.Products = _context.Products.ToList();
             ViewBag.Customers = _context.Customers.ToList();
+            var loggedInUsername = User.Identity!.Name;
 
-            // Simpan data items dan error ID ke ViewBag
+            ViewBag.LoggedInUsername = loggedInUsername;
             if (currentItems != null && currentItems.Count > 0)
             {
                 ViewBag.ErrorItemsJson = System.Text.Json.JsonSerializer.Serialize(currentItems);
