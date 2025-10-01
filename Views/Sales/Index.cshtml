@@ -3,6 +3,7 @@
 
 @{
     ViewData["Title"] = "Sales Index";
+    var indoTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
 }
 
 <h2 class="mb-3">Warung Ku</h2>
@@ -58,12 +59,13 @@
     <tbody>
         @foreach (var sale in Model)
         {
+             var indoTime = TimeZoneInfo.ConvertTimeFromUtc(sale.Date.UtcDateTime, indoTimeZone);
             var totalBruto = sale.Items.Sum(i => i.Quantity * i.Price);
             var discountAmount = totalBruto * (sale.Discount / 100m);
             var grandTotal = totalBruto - discountAmount - sale.Voucher;
             var idCulture = new CultureInfo("id-ID");
             <tr>
-                <td>@sale.Date.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                <td>@indoTime.ToString("dd/MM/yyyy HH:mm")</td>
                 <td>@sale.User?.Username</td>
                 <td>@totalBruto.ToString("C", idCulture)</td>
                 <td>@sale.Discount% (@discountAmount.ToString("C", idCulture))</td>
