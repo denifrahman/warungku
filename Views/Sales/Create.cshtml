@@ -236,7 +236,11 @@
             document.getElementById("totalAmount").textContent = formatRupiah(total);
             document.getElementById("discountAmount").textContent = "-" + formatRupiah(discountAmount);
             document.getElementById("voucherAmount").textContent = "-" + formatRupiah(voucher);
-            document.getElementById("grandTotal").textContent = formatRupiah(grandTotal);
+            if(total - discountAmount - voucher < 0){
+                document.getElementById("grandTotal").textContent = formatRupiah(0);
+            } else {
+                document.getElementById("grandTotal").textContent = formatRupiah(grandTotal);
+            }
         }
 
         document.addEventListener("input", function () {
